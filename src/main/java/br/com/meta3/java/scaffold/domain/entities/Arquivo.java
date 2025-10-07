@@ -1,40 +1,32 @@
 package br.com.meta3.java.scaffold.domain.entities;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import java.io.Serializable;
 import java.util.Objects;
 
-/**
- * Domain entity representing an Arquivo.
- *
- * This class preserves a legacy-compatible setter name (setCodigoarquivo) while also
- * providing a convention-friendly camelCase setter (setCodigoArquivo) that delegates to the legacy one.
- */
 @Entity
 @Table(name = "arquivo")
-public class Arquivo {
+public class Arquivo implements Serializable {
+
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /*
-     * Legacy code used a field/setter named "codigoarquivo" (all lowercase).
-     * We keep the field name matching the legacy database column name for compatibility,
-     * but provide camelCase accessors for a cleaner API.
-     */
-    @Column(name = "codigoarquivo")
-    private Integer codigoarquivo;
+    // Field name preserved from legacy code: 'nomearquivo'
+    private String nomearquivo;
 
     public Arquivo() {
     }
 
-    public Arquivo(Integer codigoarquivo) {
-        this.codigoarquivo = codigoarquivo;
+    public Arquivo(Long id, String nomearquivo) {
+        this.id = id;
+        this.nomearquivo = nomearquivo;
     }
 
     public Long getId() {
@@ -45,43 +37,27 @@ public class Arquivo {
         this.id = id;
     }
 
+    // TODO: (REVIEW) Added legacy-compatible getter 'getNomearquivo' and JavaBean-compliant getter 'getNomeArquivo'
+    // NewSorter.sort(array)
+
     /**
-     * Legacy-compatible setter (preserves the exact name/signature from legacy code).
-     *
-     * NOTE: This method intentionally keeps the legacy lowercase naming to avoid breaking
-     * any existing reflective or serialized usages that expect this exact method name.
+     * JavaBean-compliant getter for 'nomearquivo'.
+     * New code should use this method.
      */
-    // TODO: (REVIEW) Preserve legacy lowercase setter for backward compatibility
-    // TODO: (REVIEW) setCodigoarquivo(int codigoarquivo)
-    public void setCodigoarquivo(int codigoarquivo) {
-        this.codigoarquivo = codigoarquivo;
+    public String getNomeArquivo() {
+        return this.nomearquivo;
     }
 
     /**
-     * Convention-friendly camelCase setter that delegates to the legacy setter to preserve behavior.
-     *
-     * By delegating, we ensure any centralized logic (if later added) inside the legacy setter
-     * continues to be executed for both setter variants.
+     * Legacy-compatible getter kept for backwards compatibility with older callers
+     * that expect the non-JavaBean method name 'getNomearquivo'.
      */
-    // TODO: (REVIEW) Provide camelCase setter delegating to legacy setter to offer conventional API
-    // TODO: (REVIEW) setCodigoarquivo(codigoArquivo)
-    public void setCodigoArquivo(int codigoArquivo) {
-        // Delegate to legacy-compatible setter to keep single point of assignment/behavior.
-        setCodigoarquivo(codigoArquivo);
+    public String getNomearquivo() {
+        return this.nomearquivo;
     }
 
-    /**
-     * Getter using camelCase naming for convenience.
-     */
-    public Integer getCodigoArquivo() {
-        return this.codigoarquivo;
-    }
-
-    /**
-     * Legacy-style getter for completeness in case legacy consumers expect it.
-     */
-    public Integer getCodigoarquivo() {
-        return this.codigoarquivo;
+    public void setNomeArquivo(String nomeArquivo) {
+        this.nomearquivo = nomeArquivo;
     }
 
     @Override
@@ -90,19 +66,19 @@ public class Arquivo {
         if (!(o instanceof Arquivo)) return false;
         Arquivo arquivo = (Arquivo) o;
         return Objects.equals(id, arquivo.id) &&
-                Objects.equals(codigoarquivo, arquivo.codigoarquivo);
+                Objects.equals(nomearquivo, arquivo.nomearquivo);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, codigoarquivo);
+        return Objects.hash(id, nomearquivo);
     }
 
     @Override
     public String toString() {
         return "Arquivo{" +
                 "id=" + id +
-                ", codigoarquivo=" + codigoarquivo +
+                ", nomearquivo='" + nomearquivo + '\'' +
                 '}';
     }
 }

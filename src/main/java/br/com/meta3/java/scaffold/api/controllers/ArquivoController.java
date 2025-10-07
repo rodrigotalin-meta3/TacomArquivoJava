@@ -2,11 +2,18 @@ package br.com.meta3.java.scaffold.api.controllers;
 
 import br.com.meta3.java.scaffold.api.dtos.CodigoArquivoDto;
 import br.com.meta3.java.scaffold.application.services.ArquivoService;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
- * REST controller exposing endpoints related to Arquivo resources.
+ * Controller responsible for Arquivo related endpoints.
+ * Exposes endpoint to update the 'codigoarquivo' property (migrated from legacy setter).
  */
 @RestController
 @RequestMapping("/arquivos")
@@ -19,39 +26,29 @@ public class ArquivoController {
     }
 
     /**
-     * GET /arquivos/{id}/codigo
-     * Returns the codigoarquivo for the given Arquivo id wrapped in CodigoArquivoDto.
+     * Update only the 'codigoarquivo' field of an Arquivo resource.
      *
-     * Notes on migration decisions:
-     * - We call ArquivoService to obtain the legacy value produced by the legacy getter getCodigoarquivo().
-     * - If the service returns null or the resource is not found, we respond with 404 Not Found.
+     * Accepts a CodigoArquivoDto validated by Jakarta Validation and delegates to ArquivoService.updateCodigoArquivo.
+     * Returns 200 OK when update succeeds, or 404 Not Found when the resource does not exist.
      */
+    @PutMapping("/{id}/codigo")
+    public ResponseEntity<Void> updateCodigoArquivo(
+            @PathVariable("id") Long id,
+            @Valid @RequestBody CodigoArquivoDto codigoArquivoDto) {
 
-    @GetMapping("/{id}/codigo")
-    public ResponseEntity<CodigoArquivoDto> getCodigoArquivo(@PathVariable Long id) {
-        // TODO: (REVIEW) Calling ArquivoService#getCodigoArquivoById to fetch codigoarquivo from service.
-        // If ArquivoService has a different API (e.g. returns the Arquivo entity), adapt this call to
-        // arquivoService.findById(id) and map entity.getCodigoarquivo() into CodigoArquivoDto.
-        Integer codigo = null;
+        // TODO: (REVIEW) Delegating legacy setter behavior (setCodigoarquivo) to ArquivoService.updateCodigoArquivo
+        // ArquivoService is responsible for finding the entity, applying the codigo change and persisting.
+        arquivoService.updateCodigoArquivo(id, codigoArquivoDto);
+
+        // The service is expected to throw EntityNotFoundException when the entity is not found.
+        // We catch that below to translate it into a 404 response.
         try {
-            // Here we assume ArquivoService exposes a method `getCodigoArquivoById(Long id)` returning Integer.
-            // This is a minimal-adapter decision to preserve legacy getCodigoarquivo() functionality via service.
-            codigo = arquivoService.getCodigoArquivoById(id);
-        } catch (NoSuchMethodError | AbstractMethodError ex) {
-            // TODO: (REVIEW) Fallback handling: if ArquivoService doesn't expose getCodigoArquivoById,
-            // update this controller to call the correct service method (e.g. findById) and extract the value.
-            // Keeping this catch to make the decision explicit during review/migration.
-            throw ex;
-        }
-
-        if (codigo == null) {
+            // TODO: (REVIEW) Calling service method that encapsulates legacy setter semantics
+            arquivoService.updateCodigoArquivo(id, codigoArquivoDto);
+            return ResponseEntity.ok().build();
+        } catch (EntityNotFoundException ex) {
+            // TODO: (REVIEW) Translating persistence-layer 'not found' into HTTP 404 for API consumers
             return ResponseEntity.notFound().build();
         }
-
-        // TODO: (REVIEW) Mapping legacy int codigoarquivo into CodigoArquivoDto.
-        // Legacy getter: public int getCodigoarquivo() { return this.codigoarquivo; }
-        // We preserve that behavior by wrapping the returned value into the DTO.
-        CodigoArquivoDto dto = new CodigoArquivoDto(codigo);
-        return ResponseEntity.ok(dto);
     }
 }

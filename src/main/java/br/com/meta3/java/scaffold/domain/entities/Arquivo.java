@@ -6,52 +6,103 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.io.Serializable;
+import java.util.Objects;
 
-/*
- // TODO: (REVIEW) Using primitive int for codigoarquivo to match legacy getter behavior
- int __migration_review_primitive_codigoarquivo = 0;
- 
- Reason: The legacy code returned a primitive int (no nullability). To preserve the original
- API/behavior (getCodigoarquivo() returns an int and defaults to 0), we keep the field as a
- primitive int instead of Integer to avoid unexpected null/unboxing behavior.
-*/
-
-/*
- // TODO: (REVIEW) Using GenerationType.IDENTITY for @GeneratedValue to let DB auto-increment IDs
- int __migration_review_generation_strategy = 0;
- 
- Reason: For a straightforward migration and compatibility with H2 and typical relational DBs,
- GenerationType.IDENTITY is chosen to let the database generate sequential ids. This keeps the
- entity simple and aligns with common JPA usage for numeric primary keys.
-*/
-
+/**
+ * Domain entity representing an Arquivo.
+ *
+ * This class preserves a legacy-compatible setter name (setCodigoarquivo) while also
+ * providing a convention-friendly camelCase setter (setCodigoArquivo) that delegates to the legacy one.
+ */
 @Entity
 @Table(name = "arquivo")
-public class Arquivo implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class Arquivo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "codigoarquivo", nullable = false)
-    private int codigoarquivo;
+    private Long id;
 
-    // Default constructor required by JPA
+    /*
+     * Legacy code used a field/setter named "codigoarquivo" (all lowercase).
+     * We keep the field name matching the legacy database column name for compatibility,
+     * but provide camelCase accessors for a cleaner API.
+     */
+    @Column(name = "codigoarquivo")
+    private Integer codigoarquivo;
+
     public Arquivo() {
     }
 
-    // Convenience constructor
-    public Arquivo(int codigoarquivo) {
+    public Arquivo(Integer codigoarquivo) {
         this.codigoarquivo = codigoarquivo;
     }
 
-    // Preserved legacy getter signature and behavior
-    public int getCodigoarquivo(){
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    /**
+     * Legacy-compatible setter (preserves the exact name/signature from legacy code).
+     *
+     * NOTE: This method intentionally keeps the legacy lowercase naming to avoid breaking
+     * any existing reflective or serialized usages that expect this exact method name.
+     */
+    // TODO: (REVIEW) Preserve legacy lowercase setter for backward compatibility
+    // TODO: (REVIEW) setCodigoarquivo(int codigoarquivo)
+    public void setCodigoarquivo(int codigoarquivo) {
+        this.codigoarquivo = codigoarquivo;
+    }
+
+    /**
+     * Convention-friendly camelCase setter that delegates to the legacy setter to preserve behavior.
+     *
+     * By delegating, we ensure any centralized logic (if later added) inside the legacy setter
+     * continues to be executed for both setter variants.
+     */
+    // TODO: (REVIEW) Provide camelCase setter delegating to legacy setter to offer conventional API
+    // TODO: (REVIEW) setCodigoarquivo(codigoArquivo)
+    public void setCodigoArquivo(int codigoArquivo) {
+        // Delegate to legacy-compatible setter to keep single point of assignment/behavior.
+        setCodigoarquivo(codigoArquivo);
+    }
+
+    /**
+     * Getter using camelCase naming for convenience.
+     */
+    public Integer getCodigoArquivo() {
         return this.codigoarquivo;
     }
 
-    public void setCodigoarquivo(int codigoarquivo) {
-        this.codigoarquivo = codigoarquivo;
+    /**
+     * Legacy-style getter for completeness in case legacy consumers expect it.
+     */
+    public Integer getCodigoarquivo() {
+        return this.codigoarquivo;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Arquivo)) return false;
+        Arquivo arquivo = (Arquivo) o;
+        return Objects.equals(id, arquivo.id) &&
+                Objects.equals(codigoarquivo, arquivo.codigoarquivo);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, codigoarquivo);
+    }
+
+    @Override
+    public String toString() {
+        return "Arquivo{" +
+                "id=" + id +
+                ", codigoarquivo=" + codigoarquivo +
+                '}';
     }
 }

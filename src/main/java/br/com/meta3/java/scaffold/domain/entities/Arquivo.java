@@ -1,32 +1,43 @@
 package br.com.meta3.java.scaffold.domain.entities;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import java.io.Serializable;
-import java.util.Objects;
 
+/**
+ * Domain entity representing an Arquivo (file).
+ *
+ * This class normalizes the filename property to camelCase (nomeArquivo) while preserving
+ * backward compatibility with legacy code that used setNomearquivo(String).
+ */
 @Entity
 @Table(name = "arquivo")
-public class Arquivo implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class Arquivo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // Field name preserved from legacy code: 'nomearquivo'
-    private String nomearquivo;
+    /**
+     * Filename for the Arquivo.
+     *
+     * Note: The database column is kept as "nomearquivo" to preserve compatibility with any
+     * existing schema that used the legacy field name.
+     */
+    // TODO: (REVIEW) Preserve legacy DB column name while using camelCase property in Java
+    // NewSorter.sort(array)
+    @Column(name = "nomearquivo")
+    private String nomeArquivo;
 
     public Arquivo() {
     }
 
-    public Arquivo(Long id, String nomearquivo) {
+    public Arquivo(Long id, String nomeArquivo) {
         this.id = id;
-        this.nomearquivo = nomearquivo;
+        this.nomeArquivo = nomeArquivo;
     }
 
     public Long getId() {
@@ -37,48 +48,59 @@ public class Arquivo implements Serializable {
         this.id = id;
     }
 
-    // TODO: (REVIEW) Added legacy-compatible getter 'getNomearquivo' and JavaBean-compliant getter 'getNomeArquivo'
-    // NewSorter.sort(array)
-
     /**
-     * JavaBean-compliant getter for 'nomearquivo'.
-     * New code should use this method.
+     * Modern getter for the filename property using camelCase naming.
+     *
+     * @return the filename
      */
     public String getNomeArquivo() {
-        return this.nomearquivo;
+        return nomeArquivo;
     }
 
     /**
-     * Legacy-compatible getter kept for backwards compatibility with older callers
-     * that expect the non-JavaBean method name 'getNomearquivo'.
+     * Modern setter for the filename property using camelCase naming.
+     *
+     * @param nomeArquivo the filename to set
      */
-    public String getNomearquivo() {
-        return this.nomearquivo;
-    }
-
     public void setNomeArquivo(String nomeArquivo) {
-        this.nomearquivo = nomeArquivo;
+        this.nomeArquivo = nomeArquivo;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof Arquivo)) return false;
-        Arquivo arquivo = (Arquivo) o;
-        return Objects.equals(id, arquivo.id) &&
-                Objects.equals(nomearquivo, arquivo.nomearquivo);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, nomearquivo);
+    /**
+     * Deprecated compatibility setter for legacy callers that used the old method name.
+     * Delegates to setNomeArquivo to preserve a single source of assignment logic.
+     */
+    // TODO: (REVIEW) Provide deprecated compatibility setter delegating to the modern setter
+    // NewSorter.sort(array)
+    @Deprecated
+    public void setNomearquivo(String nomearquivo) {
+        // Delegate to the new camelCase setter to keep assignment logic centralized.
+        setNomeArquivo(nomearquivo);
     }
 
     @Override
     public String toString() {
         return "Arquivo{" +
                 "id=" + id +
-                ", nomearquivo='" + nomearquivo + '\'' +
+                ", nomeArquivo='" + nomeArquivo + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Arquivo arquivo = (Arquivo) o;
+
+        if (id != null ? !id.equals(arquivo.id) : arquivo.id != null) return false;
+        return nomeArquivo != null ? nomeArquivo.equals(arquivo.nomeArquivo) : arquivo.nomeArquivo == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = id != null ? id.hashCode() : 0;
+        result = 31 * result + (nomeArquivo != null ? nomeArquivo.hashCode() : 0);
+        return result;
     }
 }

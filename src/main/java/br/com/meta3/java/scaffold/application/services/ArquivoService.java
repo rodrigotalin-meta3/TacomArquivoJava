@@ -57,6 +57,39 @@ public class ArquivoService {
     }
 
     /**
+     * Returns the nomearquivo (legacy-styled) of the Arquivo identified by the given id.
+     *
+     * Behavior & Decisions:
+     * - Method name getNomearquivoById(...) follows legacy naming to make callers' intent explicit.
+     * - Validates that id is not null and throws IllegalArgumentException otherwise.
+     * - Fetches the Arquivo entity from the repository; if absent, throws ArquivoNotFoundException.
+     * - Returns the raw value from arquivo.getNomearquivo() to preserve legacy semantics (including nullability).
+     *
+     * Rationale:
+     * - Keeping the legacy getter invocation ensures that any consumer depending on the exact legacy
+     *   behavior (e.g., specific null handling or transformations applied in the entity getter) continues
+     *   to observe the same results after migration.
+     *
+     * @param id primary key of the Arquivo to fetch; must not be null
+     * @return String nomearquivo value from the fetched Arquivo (may be null)
+     * @throws IllegalArgumentException if id is null
+     * @throws ArquivoNotFoundException if no Arquivo is found for the provided id
+     */
+    public String getNomearquivoById(Integer id) {
+        if (id == null) {
+            throw new IllegalArgumentException("id must not be null");
+        }
+
+        Arquivo arquivo = arquivoRepository.findById(id)
+            .orElseThrow(() -> new ArquivoNotFoundException("Arquivo not found for id: " + id));
+
+        // Return legacy-styled property via legacy getter to preserve backward compatibility.
+        // TODO: (REVIEW) If in future we need trimming/normalization/validation of nomearquivo,
+        // consider applying it here or in a dedicated mapper rather than in the entity getter.
+        return arquivo.getNomearquivo();
+    }
+
+    /**
      * Runtime exception thrown when an Arquivo is not found.
      *
      * Kept local to avoid creating additional files for this simple migration step.

@@ -1,0 +1,75 @@
+package br.com.meta3.java.scaffold.api.controllers;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import br.com.meta3.java.scaffold.application.services.ArquivoService;
+import br.com.meta3.java.scaffold.api.dtos.ArquivoDto;
+
+/**
+ * REST controller exposing Arquivo-related endpoints.
+ *
+ * Exposes:
+ *   GET /api/arquivos/{id}/codigo
+ *
+ * Behavior:
+ * - Uses ArquivoService to fetch the legacy-styled codigo value.
+ * - Returns an ArquivoDto containing the codigo under the legacy property name
+ *   ("codigoarquivo") to preserve API compatibility with legacy clients.
+ *
+ * Notes / Decisions:
+ * - ArquivoService#getCodigoarquivoById(...) returns a primitive int (legacy behavior).
+ *   The DTO expects an Integer. We convert the primitive to Integer before creating the DTO.
+ *   // TODO: (REVIEW) If later we prefer to preserve nullability semantics, consider adding
+ *   // a service method that returns the domain entity or an Optional<Integer>.
+ *
+ * - We intentionally do not call ArquivoDto.fromEntity(...) here because the application
+ *   service returns a primitive codigo rather than the domain entity. Mapping is performed
+ *   directly to avoid unnecessary entity exposure in the controller layer.
+ *
+ * - Simple error handling is provided:
+ *   - 404 when ArquivoService signals not found
+ *   - 400 for invalid input (IllegalArgumentException)
+ *   - 500 for other unexpected errors
+ */
+@RestController
+@RequestMapping("/api/arquivos")
+public class ArquivoController {
+
+    private final ArquivoService arquivoService;
+
+    public ArquivoController(ArquivoService arquivoService) {
+        this.arquivoService = arquivoService;
+    }
+
+    /**
+     * GET /api/arquivos/{id}/codigo
+     *
+     * @param id identifier of the Arquivo resource
+     * @return ArquivoDto containing the legacy-styled codigo value
+     */
+    @GetMapping("/{id}/codigo")
+    public ResponseEntity<ArquivoDto> getCodigoById(@PathVariable("id") Integer id) {
+        try {
+            // Delegate to application service which preserves legacy getter semantics.
+            int codigo = arquivoService.getCodigoarquivoById(id);
+
+            // Convert primitive to Integer for the DTO. This preserves the numeric value
+            // while allowing DTO fields to be null in other flows if needed.
+            ArquivoDto dto = new ArquivoDto(Integer.valueOf(codigo));
+            return ResponseEntity.ok(dto);
+        } catch (ArquivoService.ArquivoNotFoundException ex) {
+            // Resource not found -> 404
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        } catch (IllegalArgumentException ex) {
+            // Bad request (e.g., null id) -> 400
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        } catch (Exception ex) {
+            // Unexpected errors -> 500
+            // TODO: (REVIEW) Consider centralized exception handling with @ControllerAdvice
+            // to unify error responses across controllers.
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+}

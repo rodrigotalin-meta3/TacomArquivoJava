@@ -16,11 +16,16 @@ import java.io.Serializable;
  *   To preserve backward compatibility, we provide that exact method name and also
  *   the conventional getCodigoArquivo().
  *
- * - The primary key is annotated with @Id. A generation strategy is provided
- *   (IDENTITY) to allow typical auto-increment behavior in relational DBs.
+ * - This migration adds additional legacy properties that existed in the original
+ *   aluno.Arquivo class: quantidaderegistro, aptos, semdocumento, comcodigosetps, comerro,
+ *   anovigencia, codigoescola. Fields are mapped to columns with the same legacy names.
  *
- * TODO: (REVIEW) If the DB schema uses a different generation approach or column name,
- * adjust @GeneratedValue and @Column annotations accordingly.
+ * - Numeric legacy fields are stored as boxed Integer to allow nullability in the modern
+ *   domain model but legacy-styled primitive getters are provided (returning 0 when the
+ *   backing Integer is null) to preserve original behavior of legacy consumers.
+ *
+ * TODO: (REVIEW) If DB schema requires non-null defaults or constraints, add nullable/length
+ * attributes to @Column annotations and consider database migration scripts.
  */
 @Entity
 @Table(name = "arquivo")
@@ -43,12 +48,47 @@ public class Arquivo implements Serializable {
      * - Provide both legacy-styled getter getNomearquivo() and conventional getNomeArquivo()
      *   to maintain backward compatibility for older callers while allowing modern code to
      *   use conventional naming.
-     *
-     * TODO: (REVIEW) Consider adding length, nullable and unique constraints to @Column if the
-     * database schema requires them (e.g., @Column(name = "nomearquivo", nullable = false, length = 255)).
      */
     @Column(name = "nomearquivo")
     private String nomearquivo;
+
+    /**
+     * Legacy numeric counters migrated from aluno.Arquivo.
+     *
+     * Stored as boxed Integer to support nullability in the domain model while providing
+     * legacy primitive getters that return 0 when the backing field is null. This preserves
+     * the historical behavior of returning primitive defaults.
+     *
+     * Column names are kept identical to legacy field names to ease migration and DB mapping.
+     */
+    @Column(name = "quantidaderegistro")
+    private Integer quantidaderegistro;
+
+    @Column(name = "aptos")
+    private Integer aptos;
+
+    @Column(name = "semdocumento")
+    private Integer semdocumento;
+
+    @Column(name = "comcodigosetps")
+    private Integer comcodigosetps;
+
+    @Column(name = "comerro")
+    private Integer comerro;
+
+    /**
+     * Legacy string fields. Initialize to empty string to mirror original legacy defaults
+     * where applicable (original aluno.Arquivo used "" for these fields).
+     *
+     * Decision: initialize to empty string to avoid NPEs for callers that previously relied
+     * on empty-string defaults. If the database allows NULL and nullability semantics are
+     * preferred, remove the initializer.
+     */
+    @Column(name = "anovigencia")
+    private String anovigencia = "";
+
+    @Column(name = "codigoescola")
+    private String codigoescola = "";
 
     public Arquivo() {
         // Default constructor required by JPA
@@ -84,7 +124,7 @@ public class Arquivo implements Serializable {
     }
 
     /**
-     * Legacy setter overload preserved to maintain backward/source compatibility with
+     * Legacy-styled setter overload preserved to maintain backward/source compatibility with
      * older code that used the primitive signature: public void setCodigoarquivo(int).
      *
      * Decision notes:
@@ -93,9 +133,6 @@ public class Arquivo implements Serializable {
      *   prevents potential NullPointerExceptions in legacy flows expecting a primitive.
      * - Keeping this overload ensures compiled clients calling setCodigoarquivo(int)
      *   continue to work without requiring changes.
-     *
-     * TODO: (REVIEW) Consider deprecating this primitive-based setter in favor of the
-     * boxed setter (Integer) if nullability semantics are to be introduced in the future.
      */
     public void setCodigoarquivo(int codigoarquivo) {
         this.codigoarquivo = Integer.valueOf(codigoarquivo);
@@ -138,6 +175,145 @@ public class Arquivo implements Serializable {
         // max-length enforcement), apply it in the application/service layer or introduce
         // a dedicated setter that performs validation and deprecate this legacy setter.
         this.nomearquivo = nomearquivo;
+    }
+
+    //
+    // New legacy numeric properties: quantidaderegistro, aptos, semdocumento, comcodigosetps, comerro
+    //
+    // For each numeric field we provide:
+    //  - legacy-styled primitive getter that returns 0 when backing Integer is null
+    //  - conventional boxed getter (camelCase)
+    //  - boxed setter (Integer) and primitive overload setter (int) to mirror legacy API
+    //
+
+    // quantidaderegistro
+    public int getQuantidaderegistro() {
+        return this.quantidaderegistro != null ? this.quantidaderegistro : 0;
+    }
+
+    // Conventional getter
+    public Integer getQuantidadeRegistro() {
+        return this.quantidaderegistro;
+    }
+
+    // Boxed setter
+    public void setQuantidaderegistro(Integer quantidaderegistro) {
+        this.quantidaderegistro = quantidaderegistro;
+    }
+
+    // Primitive overload setter (legacy)
+    public void setQuantidaderegistro(int quantidaderegistro) {
+        this.quantidaderegistro = Integer.valueOf(quantidaderegistro);
+    }
+
+    // aptos
+    public int getAptos() {
+        return this.aptos != null ? this.aptos : 0;
+    }
+
+    public Integer getAptosValue() {
+        return this.aptos;
+    }
+
+    public void setAptos(Integer aptos) {
+        this.aptos = aptos;
+    }
+
+    public void setAptos(int aptos) {
+        this.aptos = Integer.valueOf(aptos);
+    }
+
+    // semdocumento
+    public int getSemdocumento() {
+        return this.semdocumento != null ? this.semdocumento : 0;
+    }
+
+    public Integer getSemDocumento() {
+        return this.semdocumento;
+    }
+
+    public void setSemdocumento(Integer semdocumento) {
+        this.semdocumento = semdocumento;
+    }
+
+    public void setSemdocumento(int semdocumento) {
+        this.semdocumento = Integer.valueOf(semdocumento);
+    }
+
+    // comcodigosetps
+    public int getComcodigosetps() {
+        return this.comcodigosetps != null ? this.comcodigosetps : 0;
+    }
+
+    public Integer getComCodigoSetps() {
+        return this.comcodigosetps;
+    }
+
+    public void setComcodigosetps(Integer comcodigosetps) {
+        this.comcodigosetps = comcodigosetps;
+    }
+
+    public void setComcodigosetps(int comcodigosetps) {
+        this.comcodigosetps = Integer.valueOf(comcodigosetps);
+    }
+
+    // comerro
+    public int getComerro() {
+        return this.comerro != null ? this.comerro : 0;
+    }
+
+    public Integer getComErro() {
+        return this.comerro;
+    }
+
+    public void setComerro(Integer comerro) {
+        this.comerro = comerro;
+    }
+
+    public void setComerro(int comerro) {
+        this.comerro = Integer.valueOf(comerro);
+    }
+
+    //
+    // New legacy string properties: anovigencia, codigoescola
+    //
+    // Provide legacy-styled getters/setters and conventional camelCase variants.
+    //
+
+    // anovigencia (legacy)
+    public String getAnovigencia() {
+        return this.anovigencia;
+    }
+
+    // conventional
+    public String getAnoVigencia() {
+        return this.anovigencia;
+    }
+
+    public void setAnovigencia(String anovigencia) {
+        this.anovigencia = anovigencia;
+    }
+
+    public void setAnoVigencia(String anoVigencia) {
+        this.anovigencia = anoVigencia;
+    }
+
+    // codigoescola (legacy)
+    public String getCodigoescola() {
+        return this.codigoescola;
+    }
+
+    // conventional
+    public String getCodigoEscola() {
+        return this.codigoescola;
+    }
+
+    public void setCodigoescola(String codigoescola) {
+        this.codigoescola = codigoescola;
+    }
+
+    public void setCodigoEscola(String codigoEscola) {
+        this.codigoescola = codigoEscola;
     }
 
     // TODO: (REVIEW) Consider adding equals/hashCode and toString implementations if entities

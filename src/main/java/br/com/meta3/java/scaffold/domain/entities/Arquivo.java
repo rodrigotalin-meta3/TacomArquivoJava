@@ -124,11 +124,19 @@ public class Arquivo implements Serializable {
      *
      * Preserves legacy/source compatibility by using the same name as the field.
      *
-     * Note:
-     * - We intentionally do not provide a primitive overload (not applicable for String).
-     * - Validation (e.g., trimming, max length) should be applied at service/DTO level if needed.
+     * Legacy origin note:
+     * - This setter preserves the legacy API/ABI by keeping the exact method name
+     *   expected by older callers: setNomearquivo(String).
+     * - The method assigns the backing field directly without normalization or validation
+     *   to match historical behavior. Validation/normalization should be applied at the
+     *   service or DTO layer if needed.
+     *
+     * @param nomearquivo legacy field value
      */
     public void setNomearquivo(String nomearquivo) {
+        // TODO: (REVIEW) If normalization/validation is required in the future (e.g., trimming,
+        // max-length enforcement), apply it in the application/service layer or introduce
+        // a dedicated setter that performs validation and deprecate this legacy setter.
         this.nomearquivo = nomearquivo;
     }
 

@@ -14,7 +14,7 @@ import java.io.Serializable;
  * Notes:
  * - The legacy code used a getter named getCodigoarquivo() (lowercase 'a' after codigo).
  *   To preserve backward compatibility, we provide that exact method name and also
- *   the conventional camelCase getter getCodigoArquivo().
+ *   the conventional getCodigoArquivo().
  *
  * - The primary key is annotated with @Id. A generation strategy is provided
  *   (IDENTITY) to allow typical auto-increment behavior in relational DBs.
@@ -65,6 +65,24 @@ public class Arquivo implements Serializable {
      */
     public void setCodigoarquivo(Integer codigoarquivo) {
         this.codigoarquivo = codigoarquivo;
+    }
+
+    /**
+     * Legacy setter overload preserved to maintain backward/source compatibility with
+     * older code that used the primitive signature: public void setCodigoarquivo(int).
+     *
+     * Decision notes:
+     * - Accepts a primitive int and assigns it to the Integer backing field.
+     * - Uses Integer.valueOf(...) to box the primitive; avoids assigning null and thus
+     *   prevents potential NullPointerExceptions in legacy flows expecting a primitive.
+     * - Keeping this overload ensures compiled clients calling setCodigoarquivo(int)
+     *   continue to work without requiring changes.
+     *
+     * TODO: (REVIEW) Consider deprecating this primitive-based setter in favor of the
+     * boxed setter (Integer) if nullability semantics are to be introduced in the future.
+     */
+    public void setCodigoarquivo(int codigoarquivo) {
+        this.codigoarquivo = Integer.valueOf(codigoarquivo);
     }
 
     // TODO: (REVIEW) Consider adding equals/hashCode and toString implementations if entities
